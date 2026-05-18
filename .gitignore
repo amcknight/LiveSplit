@@ -31,3 +31,6 @@ LiveSplit.AutoSplitters.xml
 .DS_Store
 .AppleDouble
 .LSOverride
+
+# Claude Code (local-only)
+.claude/
