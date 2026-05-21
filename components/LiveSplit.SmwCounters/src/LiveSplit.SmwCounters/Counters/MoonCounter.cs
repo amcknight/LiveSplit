@@ -74,6 +74,8 @@ internal sealed class MoonCounter : ISmwCounter
     {
         Value = SettingsHelper.ParseInt(parent["Moons"], 0);
         DedupePerRoom = SettingsHelper.ParseBool(parent["DedupePerRoom"], false);
+        // countedKeys is not persisted; after a layout reload, previously-seen
+        // (level | level+room) keys can trigger another increment when revisited.
         countedKeys.Clear();
         hasPrevious = false;
     }

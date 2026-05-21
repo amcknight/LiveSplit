@@ -26,7 +26,6 @@ public class SmwCountersComponentSettings : UserControl
     {
         Hook = new CompositeHook(allowGamepads);
         ResetKey = new KeyOrButton(Keys.F2);
-        // UI is built in a later task — keep the control empty for now so tests can run.
         Size = new Size(420, 240);
     }
 

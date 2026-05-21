@@ -1,3 +1,5 @@
+using System.Xml;
+
 using LiveSplit.SmwCounters.Counters;
 
 using Xunit;
@@ -92,5 +94,24 @@ public class DeathCounterTests
         // Currently 0x09 in memory; resetting should clear hasPrevious so we don't count it again next tick.
         c.Poll(mem);
         Assert.Equal(0, c.Value);
+    }
+
+    [Fact]
+    public void StateRoundTripsThroughXml()
+    {
+        var mem = new FakeSnesMemory();
+        var a = new DeathCounter();
+        mem.SetByte(Anim, 0x00); a.Poll(mem);
+        mem.SetByte(Anim, 0x09); a.Poll(mem);
+
+        var doc = new XmlDocument();
+        var parent = doc.CreateElement("CounterState");
+        doc.AppendChild(parent);
+        a.SaveState(doc, parent);
+
+        var b = new DeathCounter();
+        b.LoadState(parent);
+
+        Assert.Equal(1, b.Value);
     }
 }
