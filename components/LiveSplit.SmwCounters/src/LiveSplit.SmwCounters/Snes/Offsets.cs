@@ -110,7 +110,7 @@ internal static class Offsets
         { "retroarch 1.9.4",  new DeepPointer("retroarch.exe", 0xD67600) },
         { "retroarch 1.16.0", new DeepPointer("retroarch.exe", 0xE8C4E9) },
         { "retroarch 1.17.0", new DeepPointer("retroarch.exe", 0xEFD5A9) },
-        { "retroarch 1.21.0", new DeepPointer("retroarch.exe", 0xFBE383) },
+        { "retroarch 1.21.0", new DeepPointer("retroarch.exe", 0xFBE399) },
         { "retroarch 1.22.2", new DeepPointer("retroarch.exe", 0x1150BB9) },
     };
 
