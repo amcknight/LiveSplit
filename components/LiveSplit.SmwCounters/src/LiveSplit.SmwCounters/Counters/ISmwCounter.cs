@@ -11,7 +11,7 @@ internal interface ISmwCounter
     string Id { get; }
 
     // Drawn in the layout row when the user hasn't set a per-counter label
-    // override. Null is allowed; the row falls back to DefaultLabel as text.
+    // override. Must not be null.
     Image DefaultIcon { get; }
 
     // Human-readable name shown in the settings dialog row label.

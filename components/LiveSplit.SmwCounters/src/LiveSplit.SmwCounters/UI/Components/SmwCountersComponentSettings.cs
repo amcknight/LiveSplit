@@ -69,27 +69,20 @@ public class SmwCountersComponentSettings : UserControl
             row.Label = new TextBox
             {
                 Text = GetLabelOverride(id) ?? "",
-                Location = new Point(160, y - 2),
-                Width = 100,
+                Location = new Point(120, y - 2),
+                Width = 120,
             };
             row.Label.TextChanged += (_, __) => SetLabelOverride(id, row.Label.Text);
-            Controls.Add(new Label
-            {
-                Text = "Label (blank = icon):",
-                Location = new Point(270, y + 2),
-                AutoSize = true,
-                ForeColor = Color.Gray,
-            });
+            Controls.Add(row.Label);
 
             row.ResetValue = new Button
             {
                 Text = "Reset value",
-                Location = new Point(420, y - 4),
+                Location = new Point(250, y - 4),
                 AutoSize = true,
             };
             row.ResetValue.Click += (_, __) => row.OnResetValue?.Invoke();
             Controls.Add(row.ResetValue);
-            Controls.Add(row.Label);
 
             y += 28;
 
@@ -114,8 +107,8 @@ public class SmwCountersComponentSettings : UserControl
         {
             ReadOnly = true,
             Text = FormatKey(ResetKey),
-            Location = new Point(160, y),
-            Width = 260,
+            Location = new Point(120, y),
+            Width = 220,
         };
         txtReset.Enter += (_, __) => CaptureKey(txtReset, k => ResetKey = k);
         Controls.Add(txtReset);
@@ -131,7 +124,7 @@ public class SmwCountersComponentSettings : UserControl
         lblStatus = new Label
         {
             Text = "(detecting…)",
-            Location = new Point(160, y + 3),
+            Location = new Point(120, y + 3),
             AutoSize = true,
             ForeColor = Color.Gray,
         };
@@ -140,14 +133,14 @@ public class SmwCountersComponentSettings : UserControl
 
         Controls.Add(new Label
         {
-            Text = "Supports snes9x, snes9x-x64, snes9x-rr, bsnes, higan, BizHawk,\n" +
-                   "and RetroArch (snes9x_libretro / bsnes_libretro / snes9x2010_libretro).",
+            Text = "Supports snes9x family, bsnes, higan, BizHawk,\n" +
+                   "and RetroArch SNES cores (snes9x / bsnes / snes9x2010).",
             Location = new Point(10, y),
             AutoSize = true,
             ForeColor = Color.Gray,
         });
 
-        Size = new Size(560, y + 60);
+        Size = new Size(360, y + 60);
 
         statusTimer?.Dispose();
         statusTimer = new Timer { Interval = 500 };

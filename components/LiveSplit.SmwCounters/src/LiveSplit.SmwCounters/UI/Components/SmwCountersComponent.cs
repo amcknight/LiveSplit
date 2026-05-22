@@ -149,10 +149,11 @@ public class SmwCountersComponent : IComponent
             if (!Settings.IsEnabled(c.Id)) { continue; }
             string overrideText = OverrideTextOrNull(c);
             string value = c.Value.ToString();
-            labelCells[c.Id].Text = overrideText ?? "";
             valueCells[c.Id].Text = value;
             // Cache key is either the override text or "<icon>" so flipping
             // between override-text and default-icon invalidates correctly.
+            // labelCells[c.Id].Text is set in DrawGeneral, where the icon-vs-text
+            // decision is final.
             cache[c.Id + ".label"] = overrideText ?? "<icon>";
             cache[c.Id + ".value"] = value;
         }
@@ -185,10 +186,9 @@ public class SmwCountersComponent : IComponent
         foreach (ISmwCounter c in enabled)
         {
             string overrideText = OverrideTextOrNull(c);
-            float labelW;
-            if (overrideText != null) { labelW = g.MeasureString(overrideText, font).Width; }
-            else if (c.DefaultIcon != null) { labelW = IconWidthFor(c.DefaultIcon, iconHeight); }
-            else { labelW = g.MeasureString(c.DefaultLabel, font).Width; }
+            float labelW = overrideText != null
+                ? g.MeasureString(overrideText, font).Width
+                : IconWidthFor(c.DefaultIcon, iconHeight);
             float valueW = g.MeasureString(c.Value.ToString("0"), font).Width;
             cellWidths[c.Id] = (labelW, valueW);
             if (totalWidth > 0) { totalWidth += CellGap; }
@@ -203,15 +203,13 @@ public class SmwCountersComponent : IComponent
             (float labelW, float valueW) = cellWidths[c.Id];
             string overrideText = OverrideTextOrNull(c);
 
-            if (overrideText == null && c.DefaultIcon != null)
+            if (overrideText == null)
             {
                 DrawIcon(g, c.DefaultIcon, x, height, labelW, iconHeight);
             }
             else
             {
-                // Either user-typed override or DefaultLabel fallback (when a
-                // counter ships without an icon).
-                labelCells[c.Id].Text = overrideText ?? c.DefaultLabel;
+                labelCells[c.Id].Text = overrideText;
                 ConfigureLabel(labelCells[c.Id], font, textColor, StringAlignment.Near, x, labelW, height);
                 labelCells[c.Id].Draw(g);
             }

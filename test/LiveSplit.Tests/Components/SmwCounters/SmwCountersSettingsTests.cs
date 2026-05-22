@@ -57,7 +57,7 @@ public class SmwCountersSettingsTests
     }
 
     [Fact]
-    public void TolereratesMissingSectionsOnLoad()
+    public void ToleratesMissingSectionsOnLoad()
     {
         // Hand-rolled minimal XML with neither EnabledCounters nor CounterLabels.
         var doc = new XmlDocument();

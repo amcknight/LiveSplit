@@ -15,8 +15,7 @@ internal sealed class DeathCounter : ISmwCounter
 
     private static readonly Bitmap icon = IconLoader.Load("LiveSplit.SmwCounters.Assets.death.png");
 
-    private byte previousAnimation;
-    private bool hasPrevious;
+    private readonly PreviousByte previousAnimation = new();
 
     public string Id => "deaths";
     public Image DefaultIcon => icon;
@@ -27,29 +26,28 @@ internal sealed class DeathCounter : ISmwCounter
     public void Reset()
     {
         Value = 0;
-        hasPrevious = false;
+        previousAnimation.Clear();
     }
 
     public void Poll(ISnesMemory memory)
     {
         if (!memory.IsAttached)
         {
-            hasPrevious = false;
+            previousAnimation.Clear();
             return;
         }
 
         if (!memory.ReadWramByte(PlayerAnimationOffset, out byte anim))
         {
-            hasPrevious = false;
+            previousAnimation.Clear();
             return;
         }
 
-        if (hasPrevious && previousAnimation != DyingValue && anim == DyingValue)
+        if (previousAnimation.HasPrevious && previousAnimation.Value != DyingValue && anim == DyingValue)
         {
             Value++;
         }
-        previousAnimation = anim;
-        hasPrevious = true;
+        previousAnimation.Set(anim);
     }
 
     public void SaveState(XmlDocument doc, XmlElement parent)
@@ -60,6 +58,6 @@ internal sealed class DeathCounter : ISmwCounter
     public void LoadState(XmlElement parent)
     {
         Value = SettingsHelper.ParseInt(parent["Deaths"], 0);
-        hasPrevious = false;
+        previousAnimation.Clear();
     }
 }

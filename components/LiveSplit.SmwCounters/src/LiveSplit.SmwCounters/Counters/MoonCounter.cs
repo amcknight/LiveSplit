@@ -16,8 +16,7 @@ internal sealed class MoonCounter : ISmwCounter
 
     private static readonly Bitmap icon = IconLoader.Load("LiveSplit.SmwCounters.Assets.moon.png");
 
-    private byte previousMoon;
-    private bool hasPrevious;
+    private readonly PreviousByte previousMoon = new();
 
     // Keys (level, or level+room) where a moon has been counted this session.
     private readonly HashSet<int> countedKeys = new();
@@ -36,14 +35,14 @@ internal sealed class MoonCounter : ISmwCounter
     {
         Value = 0;
         countedKeys.Clear();
-        hasPrevious = false;
+        previousMoon.Clear();
     }
 
     public void Poll(ISnesMemory memory)
     {
         if (!memory.IsAttached)
         {
-            hasPrevious = false;
+            previousMoon.Clear();
             return;
         }
 
@@ -51,11 +50,11 @@ internal sealed class MoonCounter : ISmwCounter
             || !memory.ReadWramByte(LevelNumOffset, out byte level)
             || !memory.ReadWramByte(RoomNumOffset, out byte room))
         {
-            hasPrevious = false;
+            previousMoon.Clear();
             return;
         }
 
-        if (hasPrevious && moon > previousMoon)
+        if (previousMoon.HasPrevious && moon > previousMoon.Value)
         {
             int key = DedupePerRoom ? ((level << 8) | room) : level;
             if (countedKeys.Add(key))
@@ -63,8 +62,7 @@ internal sealed class MoonCounter : ISmwCounter
                 Value++;
             }
         }
-        previousMoon = moon;
-        hasPrevious = true;
+        previousMoon.Set(moon);
     }
 
     public void SaveState(XmlDocument doc, XmlElement parent)
@@ -80,6 +78,6 @@ internal sealed class MoonCounter : ISmwCounter
         // countedKeys is not persisted; after a layout reload, previously-seen
         // (level | level+room) keys can trigger another increment when revisited.
         countedKeys.Clear();
-        hasPrevious = false;
+        previousMoon.Clear();
     }
 }
