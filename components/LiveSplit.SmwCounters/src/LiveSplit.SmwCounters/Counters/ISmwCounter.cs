@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Xml;
 
 using LiveSplit.SmwCounters.Snes;
@@ -9,8 +10,9 @@ internal interface ISmwCounter
     // Stable serialization key. Must not change once shipped.
     string Id { get; }
 
-    // Default short text shown when the user hasn't set a per-counter label override.
-    string DefaultGlyph { get; }
+    // Drawn in the layout row when the user hasn't set a per-counter label
+    // override. Null is allowed; the row falls back to DefaultLabel as text.
+    Image DefaultIcon { get; }
 
     // Human-readable name shown in the settings dialog row label.
     string DefaultLabel { get; }

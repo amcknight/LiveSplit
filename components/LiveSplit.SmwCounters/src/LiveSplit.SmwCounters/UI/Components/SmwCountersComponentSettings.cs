@@ -45,14 +45,14 @@ public class SmwCountersComponentSettings : UserControl
     }
 
     // Component calls this once at construction with the list of known counters.
-    public void BuildUi(IReadOnlyList<(string Id, string DefaultLabel, string DefaultGlyph, Control Extras, Action ResetValue)> counters)
+    public void BuildUi(IReadOnlyList<(string Id, string DefaultLabel, Control Extras, Action ResetValue)> counters)
     {
         Controls.Clear();
         rows.Clear();
 
         int y = 10;
 
-        foreach ((string id, string defaultLabel, string defaultGlyph, Control extras, Action resetValue) in counters)
+        foreach ((string id, string defaultLabel, Control extras, Action resetValue) in counters)
         {
             var row = new CounterRow { Id = id, OnResetValue = resetValue };
 
@@ -75,7 +75,7 @@ public class SmwCountersComponentSettings : UserControl
             row.Label.TextChanged += (_, __) => SetLabelOverride(id, row.Label.Text);
             Controls.Add(new Label
             {
-                Text = $"Label (blank = {defaultGlyph}):",
+                Text = "Label (blank = icon):",
                 Location = new Point(270, y + 2),
                 AutoSize = true,
                 ForeColor = Color.Gray,

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Windows.Forms;
 using System.Xml;
@@ -26,7 +27,6 @@ public class SmwCountersComponent : IComponent
 
     private readonly Dictionary<string, SimpleLabel> labelCells = new();
     private readonly Dictionary<string, SimpleLabel> valueCells = new();
-    private readonly SimpleLabel statusCell = new();
     private readonly GraphicsCache cache = new();
 
     public SmwCountersComponentSettings Settings { get; }
@@ -70,11 +70,11 @@ public class SmwCountersComponent : IComponent
 
         // Wire up per-counter rows. Counter-specific extras live here so the
         // settings UserControl doesn't know about individual counter types.
-        var rows = new List<(string Id, string DefaultLabel, string DefaultGlyph, Control Extras, Action ResetValue)>();
+        var rows = new List<(string Id, string DefaultLabel, Control Extras, Action ResetValue)>();
         foreach (ISmwCounter c in counters)
         {
             Control extras = BuildExtras(c);
-            rows.Add((c.Id, c.DefaultLabel, c.DefaultGlyph, extras, () => c.Reset()));
+            rows.Add((c.Id, c.DefaultLabel, extras, () => c.Reset()));
         }
         Settings.BuildUi(rows);
 
@@ -131,10 +131,12 @@ public class SmwCountersComponent : IComponent
         }
     }
 
-    private string LabelTextFor(ISmwCounter c)
+    // Returns the label-override text the user typed, or null when the row
+    // should draw the default icon instead.
+    private string OverrideTextOrNull(ISmwCounter c)
     {
         string overrideText = Settings.GetLabelOverride(c.Id);
-        return string.IsNullOrEmpty(overrideText) ? c.DefaultGlyph : overrideText;
+        return string.IsNullOrEmpty(overrideText) ? null : overrideText;
     }
 
     public void Update(IInvalidator invalidator, LiveSplitState state, float width, float height, LayoutMode mode)
@@ -145,16 +147,15 @@ public class SmwCountersComponent : IComponent
         foreach (ISmwCounter c in counters)
         {
             if (!Settings.IsEnabled(c.Id)) { continue; }
-            string label = LabelTextFor(c);
+            string overrideText = OverrideTextOrNull(c);
             string value = c.Value.ToString();
-            labelCells[c.Id].Text = label;
+            labelCells[c.Id].Text = overrideText ?? "";
             valueCells[c.Id].Text = value;
-            cache[c.Id + ".label"] = label;
+            // Cache key is either the override text or "<icon>" so flipping
+            // between override-text and default-icon invalidates correctly.
+            cache[c.Id + ".label"] = overrideText ?? "<icon>";
             cache[c.Id + ".value"] = value;
         }
-        string status = emu.IsAttached ? "" : "◌";
-        statusCell.Text = status;
-        cache["status"] = status;
 
         if (invalidator != null && cache.HasChanged)
         {
@@ -172,39 +173,69 @@ public class SmwCountersComponent : IComponent
         PaddingTop = Math.Max(0, (VerticalHeight - (0.75f * textHeight)) / 2f);
         PaddingBottom = PaddingTop;
 
-        // Measure each enabled counter's cell width: label + " " + value.
+        // Icons are scaled to fit the row height while preserving their native
+        // aspect ratio, so a 16x24 sprite renders taller-than-wide.
+        int iconHeight = (int)Math.Round(0.85f * textHeight);
+
+        // Measure each enabled counter's cell width: label-slot + " " + value.
+        // Label slot is icon-aspect-scaled when defaulting, override-text width otherwise.
         var enabled = counters.Where(c => Settings.IsEnabled(c.Id)).ToList();
         float totalWidth = 0f;
         var cellWidths = new Dictionary<string, (float labelW, float valueW)>();
         foreach (ISmwCounter c in enabled)
         {
-            float labelW = g.MeasureString(LabelTextFor(c), font).Width;
+            string overrideText = OverrideTextOrNull(c);
+            float labelW;
+            if (overrideText != null) { labelW = g.MeasureString(overrideText, font).Width; }
+            else if (c.DefaultIcon != null) { labelW = IconWidthFor(c.DefaultIcon, iconHeight); }
+            else { labelW = g.MeasureString(c.DefaultLabel, font).Width; }
             float valueW = g.MeasureString(c.Value.ToString("0"), font).Width;
             cellWidths[c.Id] = (labelW, valueW);
             if (totalWidth > 0) { totalWidth += CellGap; }
             totalWidth += labelW + 4 + valueW;
         }
 
-        float statusW = string.IsNullOrEmpty(statusCell.Text) ? 0f : g.MeasureString(" ◌", font).Width;
-        HorizontalWidth = totalWidth + statusW + 15;
+        HorizontalWidth = totalWidth + 15;
 
         float x = 5f;
         foreach (ISmwCounter c in enabled)
         {
             (float labelW, float valueW) = cellWidths[c.Id];
-            ConfigureLabel(labelCells[c.Id], font, textColor, StringAlignment.Near, x, labelW, height);
-            x += labelW + 4;
-            ConfigureLabel(valueCells[c.Id], font, textColor, StringAlignment.Near, x, valueW, height);
-            x += valueW + CellGap;
-            labelCells[c.Id].Draw(g);
-            valueCells[c.Id].Draw(g);
-        }
+            string overrideText = OverrideTextOrNull(c);
 
-        if (!string.IsNullOrEmpty(statusCell.Text))
-        {
-            ConfigureLabel(statusCell, font, textColor, StringAlignment.Far, 5, width - 10, height);
-            statusCell.Draw(g);
+            if (overrideText == null && c.DefaultIcon != null)
+            {
+                DrawIcon(g, c.DefaultIcon, x, height, labelW, iconHeight);
+            }
+            else
+            {
+                // Either user-typed override or DefaultLabel fallback (when a
+                // counter ships without an icon).
+                labelCells[c.Id].Text = overrideText ?? c.DefaultLabel;
+                ConfigureLabel(labelCells[c.Id], font, textColor, StringAlignment.Near, x, labelW, height);
+                labelCells[c.Id].Draw(g);
+            }
+            x += labelW + 4;
+
+            ConfigureLabel(valueCells[c.Id], font, textColor, StringAlignment.Near, x, valueW, height);
+            valueCells[c.Id].Draw(g);
+            x += valueW + CellGap;
         }
+    }
+
+    private static float IconWidthFor(Image icon, int iconHeight)
+        => (float)Math.Round((double)iconHeight * icon.Width / icon.Height);
+
+    private static void DrawIcon(Graphics g, Image icon, float x, float height, float drawWidth, int iconHeight)
+    {
+        InterpolationMode prevInterp = g.InterpolationMode;
+        PixelOffsetMode prevOffset = g.PixelOffsetMode;
+        g.InterpolationMode = InterpolationMode.NearestNeighbor;
+        g.PixelOffsetMode = PixelOffsetMode.Half;
+        float y = (height - iconHeight) / 2f;
+        g.DrawImage(icon, x, y, drawWidth, iconHeight);
+        g.InterpolationMode = prevInterp;
+        g.PixelOffsetMode = prevOffset;
     }
 
     private void ConfigureLabel(SimpleLabel label, Font font, Color color, StringAlignment hAlign, float x, float width, float height)

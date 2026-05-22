@@ -16,4 +16,13 @@
     <PackageReference Include="PolySharp" Version="1.14.1" PrivateAssets="all" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\death.png">
+      <LogicalName>LiveSplit.SmwCounters.Assets.death.png</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\moon.png">
+      <LogicalName>LiveSplit.SmwCounters.Assets.moon.png</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Xml;
 
 using LiveSplit.SmwCounters.Snes;
@@ -12,11 +13,13 @@ internal sealed class DeathCounter : ISmwCounter
     private const int PlayerAnimationOffset = 0x71;
     private const byte DyingValue = 0x09;
 
+    private static readonly Bitmap icon = IconLoader.Load("LiveSplit.SmwCounters.Assets.death.png");
+
     private byte previousAnimation;
     private bool hasPrevious;
 
     public string Id => "deaths";
-    public string DefaultGlyph => "💀";
+    public Image DefaultIcon => icon;
     public string DefaultLabel => "Deaths";
 
     public int Value { get; private set; }

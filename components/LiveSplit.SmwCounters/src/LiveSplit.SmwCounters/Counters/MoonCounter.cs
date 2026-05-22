@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Drawing;
 using System.Xml;
 
 using LiveSplit.SmwCounters.Snes;
@@ -13,6 +14,8 @@ internal sealed class MoonCounter : ISmwCounter
     private const int LevelNumOffset    = 0x13BF; // translevel number
     private const int RoomNumOffset     = 0x010B; // sublevel within current level
 
+    private static readonly Bitmap icon = IconLoader.Load("LiveSplit.SmwCounters.Assets.moon.png");
+
     private byte previousMoon;
     private bool hasPrevious;
 
@@ -20,7 +23,7 @@ internal sealed class MoonCounter : ISmwCounter
     private readonly HashSet<int> countedKeys = new();
 
     public string Id => "moons";
-    public string DefaultGlyph => "🌙";
+    public Image DefaultIcon => icon;
     public string DefaultLabel => "Moons";
 
     public int Value { get; private set; }
