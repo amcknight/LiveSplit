@@ -5,7 +5,7 @@ using LiveSplit.ComponentUtil;
 // Offset tables ported verbatim from kaizosplits Components/SMW/SMW/SNES/Offset.cs.
 // All offset research credit belongs to that project.
 
-namespace LiveSplit.SmwDeathCounter.Snes;
+namespace LiveSplit.SmwCounters.Snes;
 
 internal static class Offsets
 {

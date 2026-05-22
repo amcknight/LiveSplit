@@ -10,9 +10,9 @@ using LiveSplit.ComponentUtil;
 // (https://github.com/...kaizosplits, Components/SMW/SMW/SNES/{Emu,Offset}.cs).
 // All credit for the offset research belongs to that project.
 
-namespace LiveSplit.SmwDeathCounter.Snes;
+namespace LiveSplit.SmwCounters.Snes;
 
-internal sealed class SnesEmu
+internal sealed class SnesEmu : ISnesMemory
 {
     public string ProcessName { get; private set; }
     public string EmuVersion { get; private set; }
