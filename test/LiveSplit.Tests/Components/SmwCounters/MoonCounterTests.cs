@@ -36,7 +36,7 @@ public class MoonCounterTests
     public void DedupesAcrossRoomsInPerLevelMode()
     {
         var mem = new FakeSnesMemory();
-        var c = new MoonCounter(); // DedupePerRoom defaults to false
+        var c = new MoonCounter { DedupeMode = MoonDedupeMode.PerLevel };
 
         Set(mem, 0, 1, 0); c.Poll(mem);
         Set(mem, 1, 1, 0); c.Poll(mem); // count once for level 1
@@ -50,7 +50,7 @@ public class MoonCounterTests
     public void CountsEachRoomInPerRoomMode()
     {
         var mem = new FakeSnesMemory();
-        var c = new MoonCounter { DedupePerRoom = true };
+        var c = new MoonCounter { DedupeMode = MoonDedupeMode.PerRoom };
 
         Set(mem, 0, 1, 0); c.Poll(mem);
         Set(mem, 1, 1, 0); c.Poll(mem);
@@ -64,7 +64,7 @@ public class MoonCounterTests
     public void CountsAcrossDifferentLevelsInPerLevelMode()
     {
         var mem = new FakeSnesMemory();
-        var c = new MoonCounter();
+        var c = new MoonCounter { DedupeMode = MoonDedupeMode.PerLevel };
 
         Set(mem, 0, 1, 0); c.Poll(mem);
         Set(mem, 1, 1, 0); c.Poll(mem); // level 1
@@ -89,7 +89,7 @@ public class MoonCounterTests
     public void ResetClearsValueAndDedupeMemory()
     {
         var mem = new FakeSnesMemory();
-        var c = new MoonCounter();
+        var c = new MoonCounter { DedupeMode = MoonDedupeMode.PerLevel };
 
         Set(mem, 0, 1, 0); c.Poll(mem);
         Set(mem, 1, 1, 0); c.Poll(mem);
@@ -106,7 +106,7 @@ public class MoonCounterTests
     public void StateRoundTripsThroughXml()
     {
         var mem = new FakeSnesMemory();
-        var a = new MoonCounter { DedupePerRoom = true };
+        var a = new MoonCounter { DedupeMode = MoonDedupeMode.PerRoom };
         Set(mem, 0, 1, 0); a.Poll(mem);
         Set(mem, 1, 1, 0); a.Poll(mem);
 
@@ -119,6 +119,6 @@ public class MoonCounterTests
         b.LoadState(parent);
 
         Assert.Equal(1, b.Value);
-        Assert.True(b.DedupePerRoom);
+        Assert.Equal(MoonDedupeMode.PerRoom, b.DedupeMode);
     }
 }

@@ -57,6 +57,27 @@ public class SmwCountersSettingsTests
     }
 
     [Fact]
+    public void DefaultResetOnSplitsResetIsFalse()
+    {
+        var s = new SmwCountersComponentSettings(allowGamepads: false);
+
+        Assert.False(s.ResetOnSplitsReset);
+    }
+
+    [Fact]
+    public void ResetOnSplitsResetRoundTripsThroughXml()
+    {
+        var a = new SmwCountersComponentSettings(allowGamepads: false) { ResetOnSplitsReset = true };
+
+        XmlNode node = a.GetSettings(new XmlDocument());
+
+        var b = new SmwCountersComponentSettings(allowGamepads: false);
+        b.SetSettings(node);
+
+        Assert.True(b.ResetOnSplitsReset);
+    }
+
+    [Fact]
     public void ToleratesMissingSectionsOnLoad()
     {
         // Hand-rolled minimal XML with neither EnabledCounters nor CounterLabels.
